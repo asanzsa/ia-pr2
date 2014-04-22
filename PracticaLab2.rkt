@@ -156,37 +156,59 @@
 (define (encuentra_camino_tras_comprobacion_profundidad Origen Destino) 
   (let ((Abiertos (list Origen)) ; Nodo Origen.
    )
-  (busqueda_profundidad Origen Destino Abiertos null null)
+  (busqueda_profundidad_2 Origen Destino Abiertos null null)
    )
 )
 
 
-;
-(define (busqueda_profundidad Origen Destino Abiertos Cerrados Camino)
-   (let (
+
+(define (busqueda_profundidad_2 Origen Destino Abiertos Cerrados Camino)
+  ( let (
          (Actual (seleccionar_nodo Abiertos))
          )
      ( let (
-               ;(Abiertos  Abiertos Actual))
-               (Cerrados (append (list Actual) Cerrados))
-               (Succesores (explorar_nodo Actual))
-               (Camino (append (list Actual) Camino))
+               (Cerrados_aux (append (list Actual) Cerrados))
+               (Succesores (obtener_nuevos_nodos_sucesores (explorar_nodo Actual) Cerrados Abiertos '()))
+               (Camino_aux (append (list Actual) Camino))
             )
-   (if (empty? Abiertos)
-        '("no hay camino")
-        (if (equal? Actual Destino)
-            (printf "~a~n" (reverse Camino))
-            ((printf "Abiertos:~a~n" Abiertos) (printf "Cerrados:~a~n" Cerrados) (busqueda_profundidad 
+        ( cond 
+           ((empty? Abiertos) (printf "~a~n" '("no hay camino")))     ; Todos los nodos visitado sin resultado.
+           ((equal? Actual Destino) (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (reverse Camino_aux) (reverse Cerrados) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
+           ((and (empty? Succesores)  (comprobar_si_es_nodo_cambio Abiertos (explorar_nodo_limpio Origen)))
+             (busqueda_profundidad_2 
+                                 (car (cdr Camino))
+                                 Destino 
+                                 Abiertos
+                                 Cerrados_aux
+                                 (borrar_elemento Camino Origen)
+                                 ))        ; Sin nodos validos, volvemos atras.
+           
+           ((empty? Succesores) (busqueda_profundidad_2 
+                                 (car Camino)
+                                 Destino 
+                                 (borrar_elemento Abiertos Actual)
+                                 Cerrados_aux
+                                 Camino
+                                 ))        ; Sin succesores validos, volvemos atras.
+           
+           (else (busqueda_profundidad_2 
                   Actual
                   Destino 
-                 (borrar_elemento (append Abiertos (obtener_nodos_sucesores Succesores Cerrados '())) Actual)
-                 Cerrados
-                 Camino
-             ))
-        )))
-))
+                 (borrar_elemento (anyadir_nodos_a_lista Succesores Abiertos) Actual)
+                 Cerrados_aux
+                 Camino_aux
+            ))
+         )
+      )
+   )
+)
 
 
+
+
+(define (comprobar_si_es_nodo_cambio Abiertos Lista)
+   (member (ultimo_elemento_lista Abiertos) Lista)
+   )
 ; Selecciona el siguiente nodo de la lista de abiertos.
 (define (seleccionar_nodo Abiertos)
   (ultimo_elemento_lista Abiertos)
@@ -218,21 +240,38 @@
 ; nodos : lista de ciudades a generar nodo.
 ; n : lista de nodos generados.
 ; Cerrados : lista de nodos Cerrados.
-(define (obtener_nodos_sucesores nodos Cerrados n)
+(define (anyadir_nodos_a_lista nodos lista)
+     (if(null? nodos)
+        lista
+        (if (member (car nodos) lista)
+            (anyadir_nodos_a_lista 
+             (cdr nodos)
+              lista)
+            (anyadir_nodos_a_lista 
+             (cdr nodos)
+             (append lista (list (car  nodos))))
+        )
+     )
+)
+
+(define (obtener_nuevos_nodos_sucesores nodos Cerrados Abiertos n)
      (if(null? nodos)
         (reverse n)
-        (if (member (car (car nodos)) Cerrados)
-            (obtener_nodos_sucesores 
+        (if (or (member (car (car nodos)) Cerrados) (member (car (car nodos)) Abiertos))
+            (obtener_nuevos_nodos_sucesores 
              (cdr nodos)
               Cerrados
+              Abiertos
               n)
-            (obtener_nodos_sucesores 
+            (obtener_nuevos_nodos_sucesores 
              (cdr nodos)
              Cerrados
+             Abiertos
              (append (list (car (car nodos))) n))
         )
      )
 )
+
 
 
 
@@ -246,7 +285,16 @@
   (hash-ref mapa_carreteras nodo)
 )
 
-
+; i.e.- (explorar_nodo_limpio "Katherine")
+(define (explorar_nodo_limpio nodo)
+  (clean_node_list (hash-ref mapa_carreteras nodo) '())
+)
+(define (clean_node_list nodos lclean)
+  (cond
+    ((not (empty? nodos)) (clean_node_list (cdr nodos) (append lclean (list (car (car nodos))))))
+    (else lclean)
+   )
+)
 
 
 ;================================================================================================
