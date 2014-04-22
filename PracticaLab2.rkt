@@ -168,13 +168,17 @@
          )
      ( let (
                (Cerrados_aux (append (list Actual) Cerrados))
-               (Succesores (obtener_nuevos_nodos_sucesores (explorar_nodo Actual) Cerrados Abiertos '()))
+               (Succesores (obtener_nuevos_nodos_sucesores (explorar_nodo_limpio Actual) Cerrados Abiertos '()))
                (Camino_aux (append (list Actual) Camino))
             )
         ( cond 
-           ((empty? Abiertos) (printf "~a~n" '("no hay camino")))     ; Todos los nodos visitado sin resultado.
-           ((equal? Actual Destino) (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (reverse Camino_aux) (reverse Cerrados) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
-           ((and (empty? Succesores)  (comprobar_si_es_nodo_cambio Abiertos (explorar_nodo_limpio Origen)))
+           ((empty? Abiertos) 
+             (printf "~a~n" '("no hay camino")))     ; Todos los nodos visitado sin resultado.
+           
+           ((equal? Actual Destino) 
+             (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (reverse Camino_aux) (reverse Cerrados) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
+           
+           ((and (empty? Succesores)   (comprobar_si_es_nodo_cambio Abiertos (explorar_nodo_limpio Actual)))
              (busqueda_profundidad_2 
                                  (car (cdr Camino))
                                  Destino 
@@ -188,7 +192,7 @@
                                  Destino 
                                  (borrar_elemento Abiertos Actual)
                                  Cerrados_aux
-                                 Camino
+                                 (borrar_elemento Camino Origen)
                                  ))        ; Sin succesores validos, volvemos atras.
            
            (else (busqueda_profundidad_2 
@@ -257,7 +261,7 @@
 (define (obtener_nuevos_nodos_sucesores nodos Cerrados Abiertos n)
      (if(null? nodos)
         (reverse n)
-        (if (or (member (car (car nodos)) Cerrados) (member (car (car nodos)) Abiertos))
+        (if (or (member (car nodos) Cerrados) (member (car nodos) Abiertos))
             (obtener_nuevos_nodos_sucesores 
              (cdr nodos)
               Cerrados
@@ -267,7 +271,7 @@
              (cdr nodos)
              Cerrados
              Abiertos
-             (append (list (car (car nodos))) n))
+             (append (list (car nodos)) n))
         )
      )
 )
