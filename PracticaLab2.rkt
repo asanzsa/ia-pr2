@@ -156,20 +156,19 @@
 (define (encuentra_camino_tras_comprobacion_profundidad Origen Destino) 
   (let ((Abiertos (list Origen)) ; Nodo Origen.
    )
-  (busqueda_profundidad_2 Origen Destino Abiertos null null)
+  (busqueda_profundidad Origen Destino Abiertos null)
    )
 )
 
 
 
-(define (busqueda_profundidad_2 Origen Destino Abiertos Cerrados Camino)
+(define (busqueda_profundidad Origen Destino Abiertos Cerrados)
   ( let (
          (Actual (seleccionar_nodo Abiertos))
          )
      ( let (
                (Cerrados_aux (append (list Actual) Cerrados))
                (Succesores (obtener_nuevos_nodos_sucesores (explorar_nodo_limpio Actual) Cerrados Abiertos '()))
-               (Camino_aux (append (list Actual) Camino))
             )
         ( cond 
            ((empty? Abiertos) 
@@ -177,30 +176,12 @@
            
            ((equal? Actual Destino) 
              (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (obtener_camino (car Cerrados_aux) Cerrados_aux '()) (reverse Cerrados_aux) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
-           
-;           ((and (empty? Succesores)   (comprobar_si_es_nodo_cambio Abiertos (explorar_nodo_limpio Actual)))
-;             (busqueda_profundidad_2 
-;                                 (car (cdr Camino))
-;                                 Destino 
-;                                 Abiertos
-;                                 Cerrados_aux
-;                                 (borrar_elemento Camino Origen)
-;                                 ))        ; Sin los nodos validos, volvemos atras.
-           
-;           ((empty? Succesores) (busqueda_profundidad_2 
-;                                 (car Camino)
-;                                 Destino 
-;                                 (borrar_elemento Abiertos Actual)
-;                                 Cerrados_aux
-;                                 (borrar_elemento Camino Origen)
-;                                 ))        ; Sin succesores validos, volvemos atras.
-           
-           (else (busqueda_profundidad_2 
+
+           (else (busqueda_profundidad
                   Actual
                   Destino 
                  (borrar_elemento (anyadir_nodos_a_lista Succesores Abiertos) Actual)
                  Cerrados_aux
-                 Camino_aux
             ))
          )
       )
