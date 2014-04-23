@@ -69,40 +69,6 @@
 ("Hobart" (("Launceston"  188.21)))
 )))
 
-; La siguiente tabla, expresa las posición terrestre de cada ciudad en grados decimales.
-; Esta información nos valdrá para calcular la distancia aérea entre ciudades.
-; Estos datos han sido sacados de http://www.latlong.net/
-(define lat_long (make-immutable-hash '(
-("Darwin" (-12.462827 130.841777))
-("Katherine" (-14.464967 132.264256))
-("Halls Creek" (-18.224055 127.668204))
-("Port Hedland" (-20.311627 118.575258))
-("Perth" (-31.953004 115.857469))
-("Norseman" (-32.198568 121.781268))
-("Eucla" (-31.677126 128.889304))
-("Port Augusta" (-32.492440 137.762818))
-("Alice Springs" (-23.700210 133.880611))
-("Tennant Creek" (-19.645850 134.191246))
-("Mount Isa" (-20.724705 139.497462))
-("Toowoomba" (-27.564330 151.953987))
-("Goondiwindi" (-28.547206 150.307452))
-("Narrandera" (-34.747901 146.550364))
-("Melbourne" (-37.814107 144.963280))
-("Adelaide" (-34.928621 138.599959))
-("Canberra" (-35.282000 149.128684))
-("Sydney" (-33.867487 151.206990))
-("Newcastle" (-32.926689 151.7789205))
-("Brisbane" (-27.471011 153.023449))
-("Bundaberg" (-24.864963 152.348653))
-("Rockhampton" (-23.377915 150.510103))
-("Mackay" (-21.141210 149.185625))
-("Townsville" (-19.257622 146.817879))
-("Cairns" (-16.920334 145.770860))
-("Burnie" (-41.052465 145.906851))
-("Launceston" (-41.426181 147.112468))
-("Hobart" (-42.881903 147.323815))
-)))
-
 
 ; FUNCIONES
 ; =========
@@ -126,6 +92,7 @@
   )
 )
 
+
 ; Función que comprueba la viabilidad del camino, devolviendo true o false, si no
 ; hay conexión entre las ciudades.
 ;
@@ -144,8 +111,9 @@
   )
 )
 
+
 ; Encuentra el camino entre dos ciudades Origen Destino tras las comprobaciones previas. 
-; Haciendo uso del algoritmo de busqueda A*. En esta función se genera el primer nodo
+; Haciendo uso del algoritmo de busqueda en profundidad. En esta función se genera el primer nodo
 ; de la lista de ABIERTOS.
 ;
 ; PARAMETROS:
@@ -154,14 +122,29 @@
 ;
 ; i.e.- (encuentra_camino_tras_comprobacion "Katherine" "Darwin")
 (define (encuentra_camino_tras_comprobacion_profundidad Origen Destino) 
-  (let ((Abiertos (list Origen)) ; Nodo Origen.
-   )
-  (busqueda_profundidad Origen Destino Abiertos null)
-   )
+  (let ((Abiertos (list Origen)) ) ; Nodo Origen.
+    (busqueda_profundidad Origen Destino Abiertos null)
+  )
 )
 
 
-
+; Este es el cuerpo del Algoritmo de busqueda primero en profundidad. Que realiza la busqueda
+; del camino entre dos ciudades inicales de manera recursiva explorando todos los nodos de una rama
+; hasta llegar al final.
+;
+;   ACTUAL = Escoger el último nodo de la lista ABIERTOS.
+;   CERRADOS = Añadir el nodo actual a cerrados.
+;   SUCCESORES = explorar el nodo actual obtienendo los nuevos nodos sucesores que no están ni en ABIERTOS ni en Cerrados.
+; Mientras la lista Abiertos no esté vacia. Hacer.
+;   Evaluar el nodo ACTUAL:
+;        Si nodo es meta: imprimir RUTA y terminar.
+;        Sino: Llamamos de manera recursiva pasandole la nueva lista de Abiertos, la lista de Cerrados y el nodo Actual.
+;
+; PARAMETROS:
+; Origen : Ciudad inicial.
+; Destino : Ciudad final/meta.
+; Abiertos : Lista de nodos todavía por explorados.
+; Cerrados : Lista de nodos ya explorados.
 (define (busqueda_profundidad Origen Destino Abiertos Cerrados)
   ( let (
          (Actual (seleccionar_nodo Abiertos))
@@ -175,7 +158,8 @@
              (printf "~a~n" '("no hay camino")))     ; Todos los nodos visitado sin resultado.
            
            ((equal? Actual Destino) 
-             (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (obtener_camino (car Cerrados_aux) Cerrados_aux '()) (reverse Cerrados_aux) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
+             ;(printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (obtener_camino (car Cerrados_aux) Cerrados_aux '()) (reverse Cerrados_aux) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
+            (printf "Camino: ~a~n" (obtener_camino (car Cerrados_aux) Cerrados_aux '()))) ; Encontramos la meta, e imprimimos el camino.
 
            (else (busqueda_profundidad
                   Actual
@@ -189,7 +173,15 @@
 )
 
 
-;(obtener_camino "Melbourne" (reverse '("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne")) '())
+; Recorre la lista de cerrados, para obtener el camino que se ha recorrido, comprobando que nodos los sucesores del nodo Origen.
+; Se llama de manera recursiva para formar el Camino recorrido el cual se devuelve como parametro.
+;
+; PARAMETROS:
+; Origen : Ciudad inicial.
+; Cerrados : Ciudad final/meta.
+; Camino : Camino recorrido.
+;
+;i.e.- (obtener_camino "Melbourne" (reverse '("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne")) '())
 (define (obtener_camino Origen Cerrados Camino)
   ( let ((hijos_nodo (explorar_nodo_limpio Origen)))
    (cond 
@@ -205,75 +197,70 @@
 )
 
 
-;(obtener_predecesor "Melbourne" ("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne"))
-;(obtener_predecesor "Melbourne" (reverse '("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne")))
-(define (obtener_predecesor nodo Cerrados)
-  ( let ((hijos_nodo (explorar_nodo_limpio nodo)))
-  (if (member (car Cerrados) hijos_nodo)
-      (car Cerrados)
-      (obtener_predecesor nodo (cdr Cerrados))
-  ))
-)
-  
+; Comprueba si un nodo es predecesor de otro dado.
+;
+; PARAMETROS:
+; nodo : Nodo a comprobar.
+; nodos_adyacentes : lista de nodos adyacentes a otro.
+;
 (define (es_predecesor nodo nodos_adyacentes)
   (member nodo nodos_adyacentes)
 )
 
 
-
-
-
-
-
-
-(define (comprobar_si_es_nodo_cambio Abiertos Lista)
-   (member (ultimo_elemento_lista Abiertos) Lista)
-   )
-; Selecciona el siguiente nodo de la lista de abiertos.
+; Selecciona el siguiente nodo de la lista de abiertos. Que corresponde a último de la lista de Abiertos.
+;
+; PARAMETROS:
+; Abiertos : Lista de nodos Abiertos.
+;
 (define (seleccionar_nodo Abiertos)
   (ultimo_elemento_lista Abiertos)
   )
 
 
 ; Obtiene el último elemento de una lista.
+;
+; PARAMETROS:
+; l : Lista de nodos.
+;
 (define (ultimo_elemento_lista l)
   (cond ((null? l) null)
         ((null? (cdr l)) (car l))
         (else (ultimo_elemento_lista (cdr l)))))
 
 
-; elimina el elemento obj de la lista list1.
-(define (rmobject list1 obj)
-  (cond ((null? list1)
-         '())
-        ((equal? obj (car list1))
-         (rmobject (cdr list1) obj))
-        (else
-         (cons (car list1)
-               (rmobject (cdr list1) obj)))))
-
-
-
-; Genera la lista de nodos sucesores de una ciudad padre.
+; Añade una lista de nodos 'nodos' al final de la lista 'lista'.
 ;
 ; PARAMETROS:
-; nodos : lista de ciudades a generar nodo.
-; n : lista de nodos generados.
-; Cerrados : lista de nodos Cerrados.
+; nodos : lista de nodos.
+; lista : lista completa de nodos.
+;
+; i.e.- (anyadir_nodos_a_lista '(a o) '(c d) )
 (define (anyadir_nodos_a_lista nodos lista)
-     (if(null? nodos)
-        lista
-        (if (member (car nodos) lista)
-            (anyadir_nodos_a_lista 
-             (cdr nodos)
-              lista)
-            (anyadir_nodos_a_lista 
-             (cdr nodos)
-             (append lista (list (car  nodos))))
-        )
+  (if(null? nodos)
+     lista
+     (if (member (car nodos) lista)
+         (anyadir_nodos_a_lista 
+          (cdr nodos)
+          lista)
+         (anyadir_nodos_a_lista 
+          (cdr nodos)
+          (append lista (list (car  nodos))))
      )
+  )
 )
 
+
+; Obtiene una nueva lista de nodos partiendo del parametro nodos y de aquellos elementos que no esten 
+; ni en Cerrados ni en Abiertos. Devolviendo como resultado la lista n.
+;
+; PARAMETROS:
+; nodos : lista de nuevos nodos.
+; Cerrados : lista de nodos Cerrados.
+; Abiertos : lista de nodos Abiertos.
+; n : lista combinada de nodos.
+;
+; i.e.- (obtener_nuevos_nodos_sucesores '(a o) '(c d) '(a b) '())
 (define (obtener_nuevos_nodos_sucesores nodos Cerrados Abiertos n)
      (if(null? nodos)
         (reverse n)
@@ -293,8 +280,6 @@
 )
 
 
-
-
 ; Función que expande/explora los hijos de un nodo padre (conexiones de una Ciudad).
 ;
 ; PARAMETROS:
@@ -305,195 +290,31 @@
   (hash-ref mapa_carreteras nodo)
 )
 
-; i.e.- (explorar_nodo_limpio "Katherine")
+
+; Función que expande/explora los hijos de un nodo padre limpiando el resultado de las distancias entre 
+; carreteras de la tabla de la que se sacan (conexiones de una Ciudad).
+;
+; PARAMETROS:
+; nodo : nodo/ciudad a explorar.
+;
+; i.e.- (explorar_nodo_limpio "Darwin")
 (define (explorar_nodo_limpio nodo)
   (clean_node_list (hash-ref mapa_carreteras nodo) '())
 )
+
+
+; Limpia de las distancias de una lista formada por grupos de pares "(nodo distancia)".
+;
+; PARAMETROS:
+; nodo : nodo/ciudad a explorar.
+; lclean : lista auxiliar de nodos limpios.
+;
+; i.e.- (clean_node_list "Katherine")
 (define (clean_node_list nodos lclean)
   (cond
     ((not (empty? nodos)) (clean_node_list (cdr nodos) (append lclean (list (car (car nodos))))))
     (else lclean)
    )
-)
-
-
-;================================================================================================
-;================================================================================================
-
-; Encuentra el camino entre dos ciudades Origen Destino tras las comprobaciones previas. 
-; Haciendo uso del algoritmo de busqueda A*. En esta función se genera el primer nodo
-; de la lista de ABIERTOS.
-;
-; PARAMETROS:
-; Origen : Ciudad inicial.
-; Destino : Ciudad final/meta.
-;
-; i.e.- (encuentra_camino_tras_comprobacion "Katherine" "Darwin")
-(define (encuentra_camino_tras_comprobacion Origen Destino) 
-  (let ((Abiertos (list (generar_nodo_inicial Origen Destino))) ; Nodo Raiz/Origen + h(0km + distanciaAerea).
-   )
-  (busqueda_A_estrella Origen Destino Abiertos)
-   )
-)
-
-; Este es el cuerpo del Algoritmo de busqueda A*. Que realiza la busqueda
-; del camino entre dos ciudades inicales de manera recursiva.
-;
-; Mientras la lista Abiertos no esté vacia. Hacer.
-;   ACTUAL = Escoger el mejor nodo de la lista ABIERTOS. (El de menor distancia)
-;   Evaluar el nodo ACTUAL:
-;        Si nodo es meta: imprimir RUTA y terminar.
-;        Sino: Obtener los nodos de ACTUAL, calculando el valor del nodo con la función Heuristica (SUCESORES).
-;              Pasamos los nodos SUCESORES a la lista de ABIERTOS.
-;              Eliminamos el ACTUAL de la lista de ABIERTOS.
-;              Llamamos de manera recursiva pasandole los nuevos parametros.
-;   Añadir los SUCESORES a la lista de ABIERTOS.
-; Presentar FALLO y terminar.
-;
-; PARAMETROS:
-; Origen : Estado inicial.
-; Destino : Estado final/meta.
-; Abiertos : Lista de nodos pendientes de evaluar.
-;
-; i.e- (busqueda_A_estrella "Darwin" "Eucla" null '("Darwin" 0))
-(define (busqueda_A_estrella Origen Destino Abiertos)
-  (let ((actual (busca_menor Abiertos)))
-    (if (empty? Abiertos)
-        '("no hay camino") ; "camino: "
-        (if (equal? (nombre_nodo actual) Destino)
-            (printf "~a~n" (list-ref actual 3))
-            (busqueda_A_estrella 
-                  actual
-                  Destino 
-                 (borrar_elemento (append (generar_nodos_sucesores (explorar_nodo actual) actual Destino '()) Abiertos) actual)
-             )
-        )
-    )
-  )
-)
-
-; Función que expande/explora los hijos de un nodo padre (conexiones de una Ciudad).
-;
-; PARAMETROS:
-; nodo : nodo/ciudad a explorar.
-;
-; i.e.- (explorar_nodo "Darwin")
-;(define (explorar_nodo nodo)
-;  (hash-ref mapa_carreteras (nombre_nodo nodo))
-;)
-
-
-; Calcula la heurística para un nodo dado.
-;
-; i.e.- (f_heuristica_nodo "Darwin" '("Eucla" 110))
-;(define (f_heuristica_nodo Destino nodo)
-;  (list (car nodo) (+ (car (cdr nodo)) (distanciaAerea Destino (car nodo))) (car (cdr nodo)))
-;)
-
-
-; Función que dado el origen y la meta, genera el primer nodo o estado inicial.
-;
-; PARAMETROS:
-; origen : nodo/ciudad inicial.
-; meta : Destino/meta que se quiere alcanzar.
-;
-; i.e.- (generar_nodo_inicial "Darwin" "Katherine")
-(define (generar_nodo_inicial origen meta)
-  (list origen
-        0
-        (distanciaAerea origen meta)
-        (list origen)
-  )
-)
-
-; Genera la lista de nodos sucesores de una ciudad padre.
-;
-; PARAMETROS:
-; nodos : lista de ciudades a generar nodo.
-; padre : nodo padre de la lista de nodos (nodos).
-; meta : nodo/ciudad destino/meta.
-; n : lista de nodos generados.
-(define (generar_nodos_sucesores nodos padre meta n)
-  (if(null? nodos)
-     n
-     (generar_nodos_sucesores 
-           (cdr nodos) 
-           padre
-           meta 
-           (append (list (generar_nodo padre (car nodos) meta)) n))
-  )
-)
-
-; Genera la información de un nodo (hijo) a partir del nodo padre y la meta.
-;
-; PARAMETROS:
-; padre : lista de ciudades a generar nodo.
-; hijo : lista de ciudades a generar nodo.
-; meta : lista de ciudades a generar nodo.
-;
-; i.e.- (generar_nodo (list "Darwin" 100 32 (list "Darwin")) (list "Katherine" 110) "Tennant Creek")
-(define (generar_nodo padre hijo meta)
-  (list (nombre_nodo hijo)
-         (+ (distancia_acumulada_nodo padre) (distancia_acumulada_nodo hijo))
-         (distanciaAerea (nombre_nodo hijo) meta)
-         (append (list-ref padre 3) '("-") (list (nombre_nodo hijo)))
-  )
-)
-
-; Obtiene el nombre de un nodo.
-;
-; PARAMETROS:
-; nodo : información del nodo.
-;
-; i.e.- (nombre_nodo '("b" 2))
-(define (nombre_nodo nodo)
-  (list-ref nodo 0)
-)
-
-; Calcula la distancia heurística a partir de la información del nodo.
-; Suma la distancia acumulada y la distancia aerea al nodo meta.
-;
-; PARAMETROS:
-; nodo : información del nodo.
-;
-; i.e.- (distancia_heuristica_nodo '(list "Darwin" 100 32 (list "Darwin"))
-(define (distancia_heuristica_nodo nodo)
-  (+ (list-ref nodo 1) (list-ref nodo 2))
-)
-
-; Obtiene la distancia acumulada de un nodo.
-;
-; PARAMETROS:
-; nodo : información del nodo.
-;
-; i.e.- (distancia_heuristica_nodo '(list "Darwin" 100 32 (list "Darwin"))
-(define (distancia_acumulada_nodo nodo)
-  (list-ref nodo 1)
-)
-
-; Busca el menor elemento de una lista de nodos.
-;
-; PARAMETROS:
-; tl : lista de nodos.
-;
-; i.e.- (busca_menor '(("b" 2) ("c" 3) ("d" 4)))
-(define (busca_menor tl)
-  (encuentra_menor tl (car tl))
-)
-
-
-; Encuentra el menor elemento de una lista de nodos.
-;
-; PARAMETROS:
-; tl : lista de nodos.
-; b : un elemento nodo.
-;
-; i.e.- (encuentra_menor '(("b" 2 3) ("c" 3 2) ("d" 4 1)) '("d" 4 1))
-(define (encuentra_menor tl b)
-  (cond ((null? tl) b)
-        ((< (distancia_heuristica_nodo (car tl)) (distancia_heuristica_nodo b))
-            (encuentra_menor (cdr tl) (car tl)))
-        (else (encuentra_menor (cdr tl) b)))
 )
 
 
@@ -510,113 +331,44 @@
             (else (cons (car tl2) (borrar_elemento (cdr tl2) a))))
 )
 
-; Calcula la distancia aerea entre 2 ciudades dadas.
-;
-; PARAMETROS:
-; Cit1 : Ciudad 1.
-; Cit2 : Ciudad 2.
-;
-; i.e.- (distanciaAerea "Darwin" "Katherine")
-(define (distanciaAerea Cit1 Cit2)
-   ( let ( 
-          (lat1 (covertirARadianes (list-ref (hash-ref lat_long Cit1) 0)))
-          (lat2 (covertirARadianes (list-ref (hash-ref lat_long Cit2) 0)))
-          (lng1 (covertirARadianes (list-ref (hash-ref lat_long Cit1) 1)))
-          (lng2 (covertirARadianes (list-ref (hash-ref lat_long Cit2) 1)))
-          )
-      (convertirAKilometros (leyEsfericaDelCoseno (formulaDeHaversine (delta lat1 lat2) (delta lng1 lng2) (abs lat1) (abs lat2))))
-   )
-)
-
-; Calcula la diferencia entre dos posiciones terrestres expresadas en radianes.
-;
-; PARAMETROS:
-; l1 : posición en radianes 1.
-; l2 : posición en radianes 2.
-;
-; i.e.- (delta 200 100)
-(define (delta l1 l2)
-  (if (= (sgn l1) (sgn l2))
-      (abs (- (abs l2) (abs l1)))
-      (+ (abs l2) (abs l1))
-  )
-)
-  
-; Convierte un angulo expresado en grados decimales a radianes.
-;
-; PARAMETROS:
-; d : posición en grados decimales.
-; 
-; i.e.- (covertirARadianes 10)
-(define (covertirARadianes d)
-  (/ (* pi d) 180)
-)
-
-; Formula de Haversine para calcular la distancia entre dos coordenadas de la tierra.
-; a = sin^2 (Δlat / 2) + [cos (lat1) x cos (lat2) x sin^2 (Δlong / 2)]
-;
-; PARAMETROS:
-; dlat : diferencial de latitudes (lat2 - lat1).
-; dlong : diferencial de longitudes (long2 - long1).
-; lat1 : Latitud de la posición 1.
-; lat2 : Latitud de la posición 2.
-;
-; i.e.- (formulaDeHaversine 10 10 1 1)
-(define (formulaDeHaversine dlat dlong lat1 lat2)
-  (+ (expt (sin (/ dlat 2)) 2) (* (cos lat1) (cos lat2) (expt (sin (/ dlong 2)) 2)))
-)
-  
-; Formula de la Ley esférica del coseno.
-; c = 2 x arctan (√ a / √ (1-a))
-;
-; PARAMETROS:
-; a : Salida de la formula de Haversine.
-;
-; i.e.- (leyEsfericaDelCoseno 10)
-(define (leyEsfericaDelCoseno a)
-  (* 2 (atan (/ (sqrt a) (sqrt (- 1 a)))))
-)
-
-; Convierte una distancia a Kilometros.
-; d = R x c  ; R 6371 -> Radio de la tierra.
-;
-; PARAMETROS:
-; a : Salida de la ley eserica del coseno.
-;
-; i.e.- (convertirAKilometros 1)
-(define (convertirAKilometros d)
-  (* 6371 d)
-)
+;================================================================================================
+;================================================================================================
 
 
 ; TEST
 ; ----
 ; i.e.- (encuentra_camino "Katherine" "Darwin")
 ; TEST 1:(Katherine - Darwin)
-;(printf "TEST 1: Ciudades corta distancia.\n")
-;(define test1 (encuentra_camino "Katherine" "Darwin") )
+(printf "TEST 1: Ciudades corta distancia.\n")
+(define test1_a (encuentra_camino "Katherine" "Darwin") )
+(define test1_b (encuentra_camino "Darwin" "Katherine") )
 
 ; i.e.- (encuentra_camino "Darwin" "Eucla")
 ; TEST 2:(Darwin - Katherine - Tennant Creek - Alice Springs - Port Augusta - Eucla)
-;(printf "TEST 2: Ciudades media distancia.\n")
-;(define test2 (encuentra_camino "Darwin" "Eucla") )
+(printf "TEST 2: Ciudades media distancia.\n")
+(define test2_a (encuentra_camino "Darwin" "Eucla") )
+(define test2_b (encuentra_camino "Eucla" "Darwin") )
 
 ; i.e.- (encuentra_camino "Katherine" "Darwin")
 ; TEST 3:Burnie - Launceston - Hobart)
-;(printf "TEST 3: Ciudades corta distancia.\n")
-;(define test3 (encuentra_camino "Burnie" "Hobart") )
+(printf "TEST 3: Ciudades corta distancia.\n")
+(define test3_a (encuentra_camino "Burnie" "Hobart") )
+(define test3_b (encuentra_camino "Hobart" "Burnie") )
 
 ; i.e.- (encuentra_camino "Darwin" "Eucla")
 ; TEST 4:(Perth - Norseman - Eucla - Port Augusta - Adelaide - Narrandera - Goondiwindi - Toowoomba - Brisbane - Bundaberg - Rockhampton - Mackay - Townsville - Cairns)
-;(printf "TEST 4: Ciudades larga distancia.\n")
-;(define test4 (encuentra_camino "Perth" "Cairns") )
+(printf "TEST 4: Ciudades larga distancia.\n")
+(define test4_a (encuentra_camino "Perth" "Cairns") )
+(define test4_b (encuentra_camino "Cairns" "Perth") )
 
 ; i.e.- (encuentra_camino "Port Hedland" "Canberra")
 ; TEST 5:(Port Hedland - Perth - Norseman - Eucla - Port Augusta - Adelaide - Narrandera - Canberra)
-;(printf "TEST 5: Ciudades larga distancia.\n")
-;(define test5 (encuentra_camino "Port Hedland" "Canberra") )
+(printf "TEST 5: Ciudades larga distancia.\n")
+(define test5_a (encuentra_camino "Port Hedland" "Canberra") )
+(define test5_b (encuentra_camino "Canberra" "Port Hedland") )
 
 ; i.e.- (encuentra_camino "Norseman" "Burnie")
 ; TEST 6:(No es posible llegar desde Norseman a Burnie por carretera)
-;(printf "TEST 6:  Ciudades sin conexión.\n")
-;(define test6 (encuentra_camino "Norseman" "Burnie") )
+(printf "TEST 6:  Ciudades sin conexión.\n")
+(define test6_a (encuentra_camino "Norseman" "Burnie") )
+(define test6_b (encuentra_camino "Burnie" "Norseman") )
