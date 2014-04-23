@@ -176,24 +176,24 @@
              (printf "~a~n" '("no hay camino")))     ; Todos los nodos visitado sin resultado.
            
            ((equal? Actual Destino) 
-             (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (reverse Camino_aux) (reverse Cerrados) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
+             (printf "Camino: ~a~n~nCerrados: ~a~n~nAbiertos: ~a~n~n" (obtener_camino (car Cerrados_aux) Cerrados_aux '()) (reverse Cerrados_aux) (reverse Abiertos))) ; Encontramos la meta, e imprimimos el camino.
            
-           ((and (empty? Succesores)   (comprobar_si_es_nodo_cambio Abiertos (explorar_nodo_limpio Actual)))
-             (busqueda_profundidad_2 
-                                 (car (cdr Camino))
-                                 Destino 
-                                 Abiertos
-                                 Cerrados_aux
-                                 (borrar_elemento Camino Origen)
-                                 ))        ; Sin nodos validos, volvemos atras.
+;           ((and (empty? Succesores)   (comprobar_si_es_nodo_cambio Abiertos (explorar_nodo_limpio Actual)))
+;             (busqueda_profundidad_2 
+;                                 (car (cdr Camino))
+;                                 Destino 
+;                                 Abiertos
+;                                 Cerrados_aux
+;                                 (borrar_elemento Camino Origen)
+;                                 ))        ; Sin los nodos validos, volvemos atras.
            
-           ((empty? Succesores) (busqueda_profundidad_2 
-                                 (car Camino)
-                                 Destino 
-                                 (borrar_elemento Abiertos Actual)
-                                 Cerrados_aux
-                                 (borrar_elemento Camino Origen)
-                                 ))        ; Sin succesores validos, volvemos atras.
+;           ((empty? Succesores) (busqueda_profundidad_2 
+;                                 (car Camino)
+;                                 Destino 
+;                                 (borrar_elemento Abiertos Actual)
+;                                 Cerrados_aux
+;                                 (borrar_elemento Camino Origen)
+;                                 ))        ; Sin succesores validos, volvemos atras.
            
            (else (busqueda_profundidad_2 
                   Actual
@@ -206,6 +206,41 @@
       )
    )
 )
+
+
+;(obtener_camino "Melbourne" (reverse '("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne")) '())
+(define (obtener_camino Origen Cerrados Camino)
+  ( let ((hijos_nodo (explorar_nodo_limpio Origen)))
+   (cond 
+     ((empty? Cerrados) Camino)
+     ((es_predecesor (car Cerrados) hijos_nodo)
+       (obtener_camino (car Cerrados) (cdr Cerrados) (append (list (car Cerrados)) Camino))
+       )
+     ((equal? Origen (car Cerrados))
+       (obtener_camino (car Cerrados) (cdr Cerrados) (append (list (car Cerrados)) Camino))
+       )
+     (else (obtener_camino Origen (cdr Cerrados) Camino))
+  ))
+)
+
+
+;(obtener_predecesor "Melbourne" ("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne"))
+;(obtener_predecesor "Melbourne" (reverse '("Brisbane" "Toowoomba" "Goondiwindi" "Narrandera" "Adelaide" "Port Augusta" "Eucla" "Norseman" "Perth" "Port Hedland" "Halls Creek" "Katherine" "Tennant Creek" "Darwin" "Alice Springs" "Melbourne")))
+(define (obtener_predecesor nodo Cerrados)
+  ( let ((hijos_nodo (explorar_nodo_limpio nodo)))
+  (if (member (car Cerrados) hijos_nodo)
+      (car Cerrados)
+      (obtener_predecesor nodo (cdr Cerrados))
+  ))
+)
+  
+(define (es_predecesor nodo nodos_adyacentes)
+  (member nodo nodos_adyacentes)
+)
+
+
+
+
 
 
 
