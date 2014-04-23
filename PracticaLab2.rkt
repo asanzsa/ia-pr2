@@ -203,6 +203,7 @@
 ; nodo : Nodo a comprobar.
 ; nodos_adyacentes : lista de nodos adyacentes a otro.
 ;
+; i.e.- (es_predecesor 'a '(a b c d))
 (define (es_predecesor nodo nodos_adyacentes)
   (member nodo nodos_adyacentes)
 )
@@ -213,6 +214,7 @@
 ; PARAMETROS:
 ; Abiertos : Lista de nodos Abiertos.
 ;
+; i.e.- (seleccionar_nodo '(a b c d))
 (define (seleccionar_nodo Abiertos)
   (ultimo_elemento_lista Abiertos)
   )
@@ -223,6 +225,7 @@
 ; PARAMETROS:
 ; l : Lista de nodos.
 ;
+; (ultimo_elemento_lista '(a b c d))
 (define (ultimo_elemento_lista l)
   (cond ((null? l) null)
         ((null? (cdr l)) (car l))
